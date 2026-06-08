@@ -60,7 +60,7 @@ export default function Home() {
         <div className="space-y-3">
           <PrimaryButton onClick={() => setStarted(true)}>Commencer</PrimaryButton>
           <p className="text-center text-xs leading-5 text-ivory/44">
-            Tout fonctionne localement, sans compte et sans base de données.
+            Tout fonctionne localement, sans compte ni base de données.
           </p>
         </div>
       </section>
