@@ -16,7 +16,7 @@ export default function Home() {
       <section className="flex flex-1 flex-col justify-between gap-8 py-6">
         <div className="space-y-5">
           <div className="inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-bold uppercase text-gold">
-            Jeu local premium BY AC
+            Jeu premium BY AC
           </div>
           <div>
             <h1 className="text-5xl font-black leading-[0.96] text-ivory">
