@@ -11,8 +11,8 @@ const variants = {
   primary:
     "bg-gold text-night shadow-glow hover:bg-[#e2c47f] active:scale-[0.99]",
   secondary:
-    "border border-line bg-ivory/8 text-ivory hover:bg-ivory/12 active:scale-[0.99]",
-  ghost: "text-ivory/78 hover:text-ivory"
+    "border border-line bg-ivory/[0.075] text-ivory hover:bg-ivory/[0.11] active:scale-[0.99]",
+  ghost: "text-ivory/78 hover:text-ivory",
 };
 
 export function PrimaryButton({
@@ -21,11 +21,17 @@ export function PrimaryButton({
   type = "button",
   variant = "primary",
   disabled = false,
-  className = ""
+  className = "",
 }: PrimaryButtonProps) {
   return (
     <button
-      className={`min-h-14 w-full rounded-xl px-5 py-4 text-center text-sm font-black uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${className}`}
+      className={[
+        "min-h-11 w-full rounded-xl px-4 py-3 text-center text-xs font-black uppercase tracking-[0.12em] transition",
+        "disabled:cursor-not-allowed disabled:opacity-40",
+        "sm:min-h-12 sm:text-sm",
+        variants[variant],
+        className,
+      ].join(" ")}
       disabled={disabled}
       onClick={onClick}
       type={type}
