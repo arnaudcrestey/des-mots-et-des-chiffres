@@ -32,6 +32,9 @@ export function GameShell() {
     setGame(createGame());
   }, []);
 
+  const title =
+    currentRound.kind === "letters" ? "Manche Lettres" : "Manche Chiffres";
+
   const subtitle = useMemo(
     () =>
       currentRound.kind === "letters"
@@ -45,20 +48,23 @@ export function GameShell() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 py-5">
-      <div className="flex flex-1 flex-col gap-6">
-        <header className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold uppercase text-gold">
-                DES MOTS & DES CHIFFRES
-              </p>
-              <h1 className="mt-2 text-4xl font-black leading-tight text-ivory">
-                {currentRound.kind === "letters" ? "Manche Lettres" : "Manche Chiffres"}
-              </h1>
-              <p className="mt-2 text-sm leading-6 text-ivory/62">{subtitle}</p>
-            </div>
+    <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-3 py-3 sm:px-4 sm:py-5">
+      <div className="flex flex-1 flex-col gap-3.5 sm:gap-5">
+        <header className="space-y-2.5 sm:space-y-3">
+          <div>
+            <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-gold/80">
+              DES MOTS & DES CHIFFRES
+            </p>
+
+            <h1 className="mt-1 text-[2rem] font-black leading-[0.98] tracking-[-0.055em] text-ivory sm:text-4xl">
+              {title}
+            </h1>
+
+            <p className="mt-2 max-w-[22rem] text-[0.86rem] leading-5 text-ivory/62 sm:text-sm">
+              {subtitle}
+            </p>
           </div>
+
           <RoundProgress
             currentRoundIndex={game.currentRoundIndex}
             rounds={game.rounds}
@@ -66,13 +72,14 @@ export function GameShell() {
         </header>
 
         <ScorePanel roundNumber={currentRound.id} score={game.totalScore} />
+
         <Timer
           activeKey={currentRound.id}
           disabled={currentRound.status === "resolved"}
           onExpire={expire}
         />
 
-        <section className="rounded-2xl border border-line bg-panel/90 p-5 shadow-panel">
+        <section className="rounded-2xl border border-line bg-panel/90 p-3 shadow-panel sm:p-4">
           {currentRound.kind === "letters" ? (
             <LettersRound onSubmit={submit} round={currentRound} />
           ) : (
@@ -80,7 +87,11 @@ export function GameShell() {
           )}
         </section>
 
-        <RoundResult isLastRound={isLastRound} onNext={next} round={currentRound} />
+        <RoundResult
+          isLastRound={isLastRound}
+          onNext={next}
+          round={currentRound}
+        />
       </div>
     </main>
   );
