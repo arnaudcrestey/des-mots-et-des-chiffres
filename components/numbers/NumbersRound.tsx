@@ -47,6 +47,7 @@ function compute(left: number, operator: Operator, right: number): number | stri
 
   if (right === 0) return "Division impossible.";
   if (left % right !== 0) return "La division doit tomber juste.";
+
   return left / right;
 }
 
@@ -87,7 +88,11 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
   }, [currentItem, round.target]);
 
   const hasAction =
-    steps.length > 0 || Boolean(leftId) || Boolean(rightId) || Boolean(operator);
+    steps.length > 0 ||
+    Boolean(leftId) ||
+    Boolean(rightId) ||
+    Boolean(operator) ||
+    Boolean(currentItemId);
 
   function selectItem(item: CalculationItem) {
     if (resolved || !item.available) return;
@@ -107,7 +112,9 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
   }
 
   function selectOperator(nextOperator: Operator) {
-    if (resolved || !leftItem) {
+    if (resolved) return;
+
+    if (!leftItem) {
       setMessage("Sélectionnez d’abord une valeur.");
       return;
     }
@@ -206,27 +213,30 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-2xl border border-gold/35 bg-gold/[0.08] p-4 text-center">
-        <div className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-gold/75">
+    <div className="space-y-3.5">
+      <div className="rounded-xl border border-gold/30 bg-gold/[0.075] px-3 py-3 text-center">
+        <div className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-gold/70">
           Cible
         </div>
-        <div className="mt-1 text-5xl font-black leading-none text-gold">
+
+        <div className="mt-0.5 text-4xl font-black leading-none text-gold">
           {round.target}
         </div>
-        <div className="mt-2 text-xs font-bold text-ivory/65">
+
+        <div className="mt-1.5 text-[0.72rem] font-bold text-ivory/58">
           {currentItem
-            ? `Valeur actuelle : ${currentItem.value} · écart ${distance}`
+            ? `Actuel ${currentItem.value} · écart ${distance}`
             : "Construisez votre calcul"}
         </div>
       </div>
 
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-black uppercase tracking-[0.16em] text-ivory/70">
+        <h2 className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-ivory/62">
           Valeurs
         </h2>
-        <span className="text-xs font-bold text-ivory/45">
-          {steps.length}/{GAME_CONFIG.maxOperations} opérations
+
+        <span className="text-[0.68rem] font-black text-ivory/42">
+          {steps.length}/{GAME_CONFIG.maxOperations}
         </span>
       </div>
 
@@ -236,25 +246,23 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
 
           return (
             <button
-              key={item.id}
-              type="button"
-              disabled={resolved || !item.available}
-              onClick={() => selectItem(item)}
               className={[
-                "min-h-[4.15rem] rounded-xl border px-2 py-2 text-center transition active:scale-[0.98]",
+                "flex h-[3.45rem] flex-col items-center justify-center rounded-xl border px-2 text-center transition active:scale-[0.98]",
                 "disabled:cursor-not-allowed",
                 selected
                   ? "border-gold bg-gold text-night"
                   : item.source === "result"
-                    ? "border-gold/45 bg-gold/[0.14] text-gold"
-                    : "border-line bg-ivory/[0.075] text-ivory",
+                    ? "border-gold/45 bg-gold/[0.12] text-gold"
+                    : "border-line bg-ivory/[0.07] text-ivory",
                 !item.available ? "opacity-25 grayscale" : "",
               ].join(" ")}
+              disabled={resolved || !item.available}
+              key={item.id}
+              onClick={() => selectItem(item)}
+              type="button"
             >
-              <span className="block text-2xl font-black leading-none">
-                {item.value}
-              </span>
-              <span className="mt-1 block text-[0.58rem] font-black uppercase tracking-[0.12em] opacity-65">
+              <span className="text-xl font-black leading-none">{item.value}</span>
+              <span className="mt-1 text-[0.52rem] font-black uppercase tracking-[0.12em] opacity-55">
                 {item.source === "result" ? "Résultat" : "Nombre"}
               </span>
             </button>
@@ -262,36 +270,38 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
         })}
       </div>
 
-      <div className="rounded-2xl border border-line bg-ivory/[0.045] p-3">
-        <div className="text-[0.65rem] font-black uppercase tracking-[0.16em] text-ivory/45">
+      <div className="rounded-xl border border-line bg-ivory/[0.04] p-2.5">
+        <div className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-ivory/38">
           Étape
         </div>
 
-        <div className="mt-2 grid grid-cols-3 gap-2 text-center text-sm font-black">
-          <div className="rounded-xl bg-ivory/[0.07] px-2 py-3 text-ivory">
+        <div className="mt-2 grid grid-cols-3 gap-1.5 text-center text-xs font-black">
+          <div className="rounded-lg bg-ivory/[0.07] px-1.5 py-2.5 text-ivory">
             {leftItem?.value ?? "Gauche"}
           </div>
-          <div className="rounded-xl bg-ivory/[0.07] px-2 py-3 text-gold">
+
+          <div className="rounded-lg bg-ivory/[0.07] px-1.5 py-2.5 text-gold">
             {operator ?? "Op."}
           </div>
-          <div className="rounded-xl bg-ivory/[0.07] px-2 py-3 text-ivory">
+
+          <div className="rounded-lg bg-ivory/[0.07] px-1.5 py-2.5 text-ivory">
             {rightItem?.value ?? "Droite"}
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-4 gap-2">
+        <div className="mt-2 grid grid-cols-4 gap-1.5">
           {OPERATORS.map((candidate) => (
             <button
-              key={candidate}
-              type="button"
-              disabled={resolved}
-              onClick={() => selectOperator(candidate)}
               className={[
-                "h-12 rounded-xl border text-xl font-black transition active:scale-[0.98]",
+                "h-10 rounded-lg border text-lg font-black transition active:scale-[0.98]",
                 operator === candidate
                   ? "border-gold bg-gold text-night"
                   : "border-line bg-panel text-ivory",
               ].join(" ")}
+              disabled={resolved}
+              key={candidate}
+              onClick={() => selectOperator(candidate)}
+              type="button"
             >
               {candidate}
             </button>
@@ -299,13 +309,13 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
         </div>
 
         {message ? (
-          <div className="mt-3 rounded-xl border border-gold/25 bg-gold/[0.08] px-3 py-2 text-xs font-bold text-gold">
+          <div className="mt-2 rounded-lg border border-gold/25 bg-gold/[0.08] px-2.5 py-2 text-[0.72rem] font-bold leading-snug text-gold">
             {message}
           </div>
         ) : null}
 
         <button
-          type="button"
+          className="mt-2 h-10 w-full rounded-lg border border-line bg-ivory/[0.07] text-[0.68rem] font-black uppercase tracking-[0.12em] text-ivory transition active:scale-[0.99] disabled:opacity-35"
           disabled={
             resolved ||
             !leftItem ||
@@ -314,23 +324,23 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
             steps.length >= GAME_CONFIG.maxOperations
           }
           onClick={runStep}
-          className="mt-3 h-12 w-full rounded-xl border border-line bg-ivory/[0.075] text-xs font-black uppercase tracking-[0.12em] text-ivory transition active:scale-[0.99] disabled:opacity-35"
+          type="button"
         >
           Calculer l’étape
         </button>
       </div>
 
       {steps.length > 0 ? (
-        <div className="space-y-2">
-          <h2 className="text-xs font-black uppercase tracking-[0.16em] text-ivory/70">
+        <div className="space-y-1.5">
+          <h2 className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-ivory/58">
             Calcul
           </h2>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {steps.map((step, index) => (
               <div
+                className="rounded-lg border border-line bg-panel/80 px-2.5 py-2 text-xs font-bold text-ivory"
                 key={`${step.expression}-${index}`}
-                className="rounded-xl border border-line bg-panel/85 px-3 py-2 text-sm font-bold text-ivory"
               >
                 {step.left} {step.operator} {step.right} ={" "}
                 <span className="text-gold">{step.value}</span>
@@ -340,16 +350,16 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-[1fr_5rem] gap-3">
+      <div className="grid grid-cols-[1fr_4.25rem] gap-2">
         <PrimaryButton disabled={resolved || !currentItem} onClick={submit}>
           Valider
         </PrimaryButton>
 
         <button
-          type="button"
+          className="min-h-11 rounded-xl border border-line bg-ivory/[0.055] text-[0.68rem] font-black uppercase text-ivory transition active:scale-[0.98] disabled:opacity-35"
           disabled={resolved || !hasAction}
           onClick={resetBoard}
-          className="min-h-12 rounded-xl border border-line bg-ivory/[0.06] text-xs font-black uppercase text-ivory transition active:scale-[0.98] disabled:opacity-35"
+          type="button"
         >
           Reset
         </button>
