@@ -25,7 +25,7 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
     if (usedIndexes.includes(index)) return;
     if (answer.length >= round.letters.length) return;
 
-    setAnswer((current) => `${current}${letter}`);
+    setAnswer((current) => `${current}${letter.toUpperCase()}`);
     setUsedIndexes((current) => [...current, index]);
   }
 
@@ -46,7 +46,7 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
   function submitAnswer() {
     if (resolved || answer.length === 0) return;
 
-    onSubmit(answer);
+    onSubmit(answer.toUpperCase());
   }
 
   return (
@@ -60,23 +60,24 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
       <div className="grid grid-cols-5 gap-1.5">
         {round.letters.map((letter, index) => {
           const used = usedIndexes.includes(index);
+          const displayLetter = letter.toUpperCase();
 
           return (
             <button
-              aria-label={`Ajouter ${letter}`}
+              aria-label={`Ajouter ${displayLetter}`}
               className={[
-                "flex h-11 items-center justify-center rounded-lg border text-xl font-black transition active:scale-[0.97]",
+                "flex h-11 items-center justify-center rounded-lg border text-2xl font-black tracking-tight transition active:scale-[0.97]",
                 "focus:outline-none focus:ring-2 focus:ring-gold/70",
                 used
                   ? "border-transparent bg-black/55 text-ivory/10 opacity-30"
-                  : "border-gold/25 bg-[#1E252D] text-[#FFF8EA] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(0,0,0,0.32)]",
+                  : "border-gold/25 bg-[#1E252D] text-[#FFF8EA] shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_24px_rgba(0,0,0,0.32)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]",
               ].join(" ")}
               disabled={resolved || used}
               key={`${letter}-${index}`}
-              onClick={() => addLetter(letter, index)}
+              onClick={() => addLetter(displayLetter, index)}
               type="button"
             >
-              {letter}
+              {displayLetter}
             </button>
           );
         })}
