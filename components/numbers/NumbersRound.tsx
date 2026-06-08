@@ -16,15 +16,14 @@ type CalculationItem = {
   id: string;
   value: number;
   expression: string;
-  label: string;
   available: boolean;
   source: "draw" | "result";
 };
 
 type Step = {
-  left: string;
+  left: number;
   operator: Operator;
-  right: string;
+  right: number;
   value: number;
   expression: string;
 };
@@ -36,31 +35,23 @@ function createInitialItems(numbers: number[]): CalculationItem[] {
     id: `n-${index}`,
     value,
     expression: String(value),
-    label: String(value),
     available: true,
-    source: "draw"
+    source: "draw",
   }));
 }
 
-function compute(left: number, operator: Operator, right: number): string | number {
-  switch (operator) {
-    case "+":
-      return left + right;
-    case "-":
-      return left - right;
-    case "×":
-      return left * right;
-    case "÷":
-      if (right === 0) {
-        return "Division par zero.";
-      }
+function compute(left: number, operator: Operator, right: number): number | string {
+  if (operator === "+") return left + right;
+  if (operator === "-") return left - right;
+  if (operator === "×") return left * right;
 
-      if (left % right !== 0) {
-        return "La division doit tomber juste.";
-      }
+  if (right === 0) return "Division impossible.";
+  if (left % right !== 0) return "La division doit tomber juste.";
+  return left / right;
+}
 
-      return left / right;
-  }
+function normalizeExpression(expression: string) {
+  return expression.replaceAll("×", "*").replaceAll("÷", "/");
 }
 
 export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
@@ -70,9 +61,10 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
   const [steps, setSteps] = useState<Step[]>([]);
   const [leftId, setLeftId] = useState<string | null>(null);
   const [rightId, setRightId] = useState<string | null>(null);
-  const [currentItemId, setCurrentItemId] = useState<string | null>(null);
   const [operator, setOperator] = useState<Operator | null>(null);
+  const [currentItemId, setCurrentItemId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+
   const resolved = round.status === "resolved";
 
   useEffect(() => {
@@ -80,226 +72,226 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
     setSteps([]);
     setLeftId(null);
     setRightId(null);
-    setCurrentItemId(null);
     setOperator(null);
+    setCurrentItemId(null);
     setMessage("");
   }, [round.id, round.numbers]);
 
-  const availableItems = items.filter((item) => item.available);
   const leftItem = items.find((item) => item.id === leftId);
   const rightItem = items.find((item) => item.id === rightId);
   const currentItem = items.find((item) => item.id === currentItemId);
-  const currentExpression = currentItem?.expression ?? "";
-  const currentValue = currentItem?.value;
 
   const distance = useMemo(() => {
-    if (currentValue === undefined) {
-      return null;
-    }
+    if (!currentItem) return null;
+    return Math.abs(round.target - currentItem.value);
+  }, [currentItem, round.target]);
 
-    return Math.abs(round.target - currentValue);
-  }, [currentValue, round.target]);
+  const hasAction =
+    steps.length > 0 || Boolean(leftId) || Boolean(rightId) || Boolean(operator);
 
   function selectItem(item: CalculationItem) {
-    if (resolved || !item.available) {
-      return;
-    }
+    if (resolved || !item.available) return;
 
     setMessage("");
 
-    if (!leftId || leftId === item.id || !operator) {
+    if (!leftId || !operator) {
       setLeftId(item.id);
       setRightId(null);
       setCurrentItemId(item.id);
       return;
     }
 
+    if (item.id === leftId) return;
+
     setRightId(item.id);
   }
 
+  function selectOperator(nextOperator: Operator) {
+    if (resolved || !leftItem) {
+      setMessage("Sélectionnez d’abord une valeur.");
+      return;
+    }
+
+    setOperator(nextOperator);
+    setRightId(null);
+    setMessage("");
+  }
+
   function runStep() {
-    if (!leftItem || !rightItem || !operator) {
-      setMessage("Choisissez deux valeurs et une operation.");
+    if (resolved) return;
+
+    if (!leftItem || !operator || !rightItem) {
+      setMessage("Sélectionnez une valeur, une opération puis une seconde valeur.");
       return;
     }
 
     if (steps.length >= GAME_CONFIG.maxOperations) {
-      setMessage("Vous avez deja utilise 5 operations.");
+      setMessage("Vous avez déjà utilisé les 5 opérations.");
       return;
     }
 
-    const value = compute(leftItem.value, operator, rightItem.value);
+    const result = compute(leftItem.value, operator, rightItem.value);
 
-    if (typeof value === "string") {
-      setMessage(value);
+    if (typeof result === "string") {
+      setMessage(result);
       return;
     }
 
-    if (value < 0) {
-      setMessage("Le resultat doit rester positif.");
+    if (result < 0) {
+      setMessage("Le résultat doit rester positif.");
       return;
     }
 
-    const resultExpression = `(${leftItem.expression}${operator}${rightItem.expression})`;
-    const result: CalculationItem = {
+    const expression = `(${leftItem.expression}${operator}${rightItem.expression})`;
+
+    const resultItem: CalculationItem = {
       id: `r-${steps.length + 1}`,
-      value,
-      expression: resultExpression,
-      label: String(value),
+      value: result,
+      expression,
       available: true,
-      source: "result"
+      source: "result",
     };
 
-    setItems((current) =>
-      current
+    setItems((previous) =>
+      previous
         .map((item) =>
           item.id === leftItem.id || item.id === rightItem.id
             ? { ...item, available: false }
             : item
         )
-        .concat(result)
+        .concat(resultItem)
     );
-    setSteps((current) => [
-      ...current,
+
+    setSteps((previous) => [
+      ...previous,
       {
-        left: leftItem.label,
+        left: leftItem.value,
         operator,
-        right: rightItem.label,
-        value,
-        expression: resultExpression
-      }
+        right: rightItem.value,
+        value: result,
+        expression,
+      },
     ]);
-    setLeftId(result.id);
+
+    setLeftId(resultItem.id);
     setRightId(null);
-    setCurrentItemId(result.id);
     setOperator(null);
+    setCurrentItemId(resultItem.id);
     setMessage("");
   }
 
   function resetBoard() {
-    if (resolved) {
-      return;
-    }
+    if (resolved) return;
 
     setItems(createInitialItems(round.numbers));
     setSteps([]);
     setLeftId(null);
     setRightId(null);
-    setCurrentItemId(null);
     setOperator(null);
+    setCurrentItemId(null);
     setMessage("");
   }
 
   function submit() {
-    if (!currentExpression) {
-      setMessage("Sélectionnez une valeur ou calculez au moins une étape.");
+    if (resolved) return;
+
+    const itemToSubmit = currentItem ?? leftItem;
+
+    if (!itemToSubmit) {
+      setMessage("Sélectionnez une valeur ou construisez un calcul.");
       return;
     }
 
-    onSubmit(currentExpression);
+    onSubmit(normalizeExpression(itemToSubmit.expression));
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-gold/45 bg-gold/14 p-5 text-center shadow-glow">
-        <div className="text-xs font-black uppercase text-gold/78">Cible</div>
-        <div className="text-6xl font-black leading-none text-gold">{round.target}</div>
-        <div className="mt-2 text-sm font-bold text-ivory/68">
-          {currentValue === undefined
-            ? "Sélectionnez une valeur gauche"
-            : `Valeur courante : ${currentValue} · écart ${distance}`}
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-gold/35 bg-gold/[0.08] p-4 text-center">
+        <div className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-gold/75">
+          Cible
+        </div>
+        <div className="mt-1 text-5xl font-black leading-none text-gold">
+          {round.target}
+        </div>
+        <div className="mt-2 text-xs font-bold text-ivory/65">
+          {currentItem
+            ? `Valeur actuelle : ${currentItem.value} · écart ${distance}`
+            : "Construisez votre calcul"}
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-black uppercase text-ivory/72">Valeurs</h2>
-          <span className="text-xs font-bold text-ivory/48">
-            {steps.length}/{GAME_CONFIG.maxOperations} opérations
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl border border-line bg-panel/88 p-3">
-            <div className="text-[0.65rem] font-black uppercase text-ivory/48">
-              Nombres originaux
-            </div>
-            <div className="mt-1 text-xs font-bold text-ivory/72">
-              Disponibles jusqu&apos;à utilisation
-            </div>
-          </div>
-          <div className="rounded-xl border border-gold/35 bg-gold/10 p-3">
-            <div className="text-[0.65rem] font-black uppercase text-gold/70">
-              Résultats
-            </div>
-            <div className="mt-1 text-xs font-bold text-ivory/72">
-              Réutilisables en étape suivante
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {items.map((item) => {
-            const selected = item.id === leftId || item.id === rightId;
-
-            return (
-              <button
-                className={`min-h-16 rounded-xl border px-2 py-3 text-center transition active:scale-[0.98] disabled:cursor-not-allowed ${
-                  selected
-                    ? "border-gold bg-gold text-night shadow-glow"
-                    : item.source === "result"
-                      ? "border-gold/55 bg-gold/16 text-gold"
-                      : "border-line bg-ivory/[0.08] text-ivory"
-                } ${!item.available ? "opacity-25 grayscale" : ""}`}
-                disabled={resolved || !item.available}
-                key={item.id}
-                onClick={() => selectItem(item)}
-                type="button"
-              >
-                <span className="block text-2xl font-black leading-none">
-                  {item.label}
-                </span>
-                <span className="mt-1 block text-[0.65rem] font-bold uppercase opacity-70">
-                  {item.source === "result" ? "Résultat" : "Nombre"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-black uppercase tracking-[0.16em] text-ivory/70">
+          Valeurs
+        </h2>
+        <span className="text-xs font-bold text-ivory/45">
+          {steps.length}/{GAME_CONFIG.maxOperations} opérations
+        </span>
       </div>
 
-      <div className="space-y-3 rounded-xl border border-line bg-ivory/[0.055] p-3">
-        <div className="rounded-xl border border-line bg-panel/90 p-3">
-          <div className="text-[0.65rem] font-black uppercase text-ivory/48">
-            Étape en cours
+      <div className="grid grid-cols-3 gap-2">
+        {items.map((item) => {
+          const selected = item.id === leftId || item.id === rightId;
+
+          return (
+            <button
+              key={item.id}
+              type="button"
+              disabled={resolved || !item.available}
+              onClick={() => selectItem(item)}
+              className={[
+                "min-h-[4.15rem] rounded-xl border px-2 py-2 text-center transition active:scale-[0.98]",
+                "disabled:cursor-not-allowed",
+                selected
+                  ? "border-gold bg-gold text-night"
+                  : item.source === "result"
+                    ? "border-gold/45 bg-gold/[0.14] text-gold"
+                    : "border-line bg-ivory/[0.075] text-ivory",
+                !item.available ? "opacity-25 grayscale" : "",
+              ].join(" ")}
+            >
+              <span className="block text-2xl font-black leading-none">
+                {item.value}
+              </span>
+              <span className="mt-1 block text-[0.58rem] font-black uppercase tracking-[0.12em] opacity-65">
+                {item.source === "result" ? "Résultat" : "Nombre"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="rounded-2xl border border-line bg-ivory/[0.045] p-3">
+        <div className="text-[0.65rem] font-black uppercase tracking-[0.16em] text-ivory/45">
+          Étape
+        </div>
+
+        <div className="mt-2 grid grid-cols-3 gap-2 text-center text-sm font-black">
+          <div className="rounded-xl bg-ivory/[0.07] px-2 py-3 text-ivory">
+            {leftItem?.value ?? "Gauche"}
           </div>
-          <div className="mt-2 grid grid-cols-3 gap-2 text-center text-sm font-black">
-            <div className="rounded-lg bg-ivory/[0.07] px-2 py-3 text-ivory">
-              {leftItem?.label ?? "Gauche"}
-            </div>
-            <div className="rounded-lg bg-ivory/[0.07] px-2 py-3 text-gold">
-              {operator ?? "Op."}
-            </div>
-            <div className="rounded-lg bg-ivory/[0.07] px-2 py-3 text-ivory">
-              {rightItem?.label ?? "Droite"}
-            </div>
+          <div className="rounded-xl bg-ivory/[0.07] px-2 py-3 text-gold">
+            {operator ?? "Op."}
+          </div>
+          <div className="rounded-xl bg-ivory/[0.07] px-2 py-3 text-ivory">
+            {rightItem?.value ?? "Droite"}
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="mt-3 grid grid-cols-4 gap-2">
           {OPERATORS.map((candidate) => (
             <button
-              className={`min-h-[3.25rem] rounded-xl border text-2xl font-black transition active:scale-[0.98] disabled:opacity-40 ${
+              key={candidate}
+              type="button"
+              disabled={resolved}
+              onClick={() => selectOperator(candidate)}
+              className={[
+                "h-12 rounded-xl border text-xl font-black transition active:scale-[0.98]",
                 operator === candidate
                   ? "border-gold bg-gold text-night"
-                  : "border-line bg-panel text-ivory"
-              }`}
-              disabled={resolved}
-              key={candidate}
-              onClick={() => {
-                setOperator(candidate);
-                setRightId(null);
-                setMessage("");
-              }}
-              type="button"
+                  : "border-line bg-panel text-ivory",
+              ].join(" ")}
             >
               {candidate}
             </button>
@@ -307,12 +299,13 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
         </div>
 
         {message ? (
-          <p className="rounded-lg border border-gold/25 bg-gold/10 p-3 text-sm font-semibold text-gold">
+          <div className="mt-3 rounded-xl border border-gold/25 bg-gold/[0.08] px-3 py-2 text-xs font-bold text-gold">
             {message}
-          </p>
+          </div>
         ) : null}
 
-        <PrimaryButton
+        <button
+          type="button"
           disabled={
             resolved ||
             !leftItem ||
@@ -321,43 +314,42 @@ export function NumbersRound({ round, onSubmit }: NumbersRoundProps) {
             steps.length >= GAME_CONFIG.maxOperations
           }
           onClick={runStep}
-          variant="secondary"
+          className="mt-3 h-12 w-full rounded-xl border border-line bg-ivory/[0.075] text-xs font-black uppercase tracking-[0.12em] text-ivory transition active:scale-[0.99] disabled:opacity-35"
         >
-          Calculer l&apos;étape
-        </PrimaryButton>
+          Calculer l’étape
+        </button>
       </div>
 
       {steps.length > 0 ? (
         <div className="space-y-2">
-          <h2 className="text-sm font-black uppercase text-ivory/72">Calcul</h2>
+          <h2 className="text-xs font-black uppercase tracking-[0.16em] text-ivory/70">
+            Calcul
+          </h2>
+
           <div className="space-y-2">
             {steps.map((step, index) => (
               <div
-                className="rounded-lg border border-line bg-panel/88 px-3 py-2 text-sm font-bold text-ivory"
-                key={`${step.left}-${step.operator}-${step.right}-${index}`}
+                key={`${step.expression}-${index}`}
+                className="rounded-xl border border-line bg-panel/85 px-3 py-2 text-sm font-bold text-ivory"
               >
-                <div>
-                  {step.left} {step.operator} {step.right} ={" "}
-                  <span className="text-gold">{step.value}</span>
-                </div>
-                <div className="mt-1 truncate text-xs text-ivory/42">
-                  {step.expression}
-                </div>
+                {step.left} {step.operator} {step.right} ={" "}
+                <span className="text-gold">{step.value}</span>
               </div>
             ))}
           </div>
         </div>
       ) : null}
 
-      <div className="grid grid-cols-[1fr_auto] gap-3">
-        <PrimaryButton disabled={resolved || !currentExpression} onClick={submit}>
+      <div className="grid grid-cols-[1fr_5rem] gap-3">
+        <PrimaryButton disabled={resolved || !currentItem} onClick={submit}>
           Valider
         </PrimaryButton>
+
         <button
-          className="min-h-14 rounded-xl border border-line bg-ivory/[0.07] px-4 text-sm font-black uppercase text-ivory transition active:scale-[0.99] disabled:opacity-40"
-          disabled={resolved || availableItems.length === round.numbers.length}
-          onClick={resetBoard}
           type="button"
+          disabled={resolved || !hasAction}
+          onClick={resetBoard}
+          className="min-h-12 rounded-xl border border-line bg-ivory/[0.06] text-xs font-black uppercase text-ivory transition active:scale-[0.98] disabled:opacity-35"
         >
           Reset
         </button>
