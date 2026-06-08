@@ -24,8 +24,8 @@ export default function Home() {
               <span className="block text-gold">& DES CHIFFRES</span>
             </h1>
             <p className="mt-5 text-base leading-7 text-ivory/68">
-              Douze manches rapides pour tester vocabulaire, intuition et calcul
-              mental dans une interface pensée pour le tactile.
+              Douze manches rapides pour tester vocabulaire et calcul
+              mental.
             </p>
           </div>
         </div>
