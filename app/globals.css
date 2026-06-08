@@ -4,7 +4,11 @@
 
 :root {
   color-scheme: dark;
-  background: #05070a;
+
+  --night: #05070a;
+  --night-soft: #070b10;
+  --ivory: #f6f1e8;
+  --gold: #d7b56d;
 }
 
 * {
@@ -15,14 +19,50 @@ html,
 body {
   min-height: 100%;
   overflow-x: hidden;
+  background: var(--night);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: geometricPrecision;
 }
 
 body {
   margin: 0;
+  color: var(--ivory);
   background:
-    radial-gradient(circle at top left, rgba(215, 181, 109, 0.12), transparent 32rem),
-    linear-gradient(180deg, #05070a 0%, #070b10 52%, #05070a 100%);
-  color: #f6f1e8;
+    radial-gradient(circle at 50% -10%, rgba(215, 181, 109, 0.18), transparent 22rem),
+    radial-gradient(circle at 14% 20%, rgba(246, 241, 232, 0.05), transparent 18rem),
+    radial-gradient(circle at 86% 82%, rgba(215, 181, 109, 0.08), transparent 20rem),
+    linear-gradient(180deg, #030507 0%, #070b10 48%, #030507 100%);
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1,
+    "calt" 1;
+}
+
+body::before {
+  pointer-events: none;
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at center, black, transparent 72%);
+}
+
+body::after {
+  pointer-events: none;
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 22%),
+    radial-gradient(circle at center, transparent 44%, rgba(0, 0, 0, 0.34) 100%);
 }
 
 button,
@@ -34,6 +74,13 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(215, 181, 109, 0.78);
+  outline-offset: 3px;
+}
+
 ::selection {
   background: rgba(215, 181, 109, 0.35);
+  color: #05070a;
 }
