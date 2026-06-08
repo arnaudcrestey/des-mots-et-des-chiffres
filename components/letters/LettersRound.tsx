@@ -55,31 +55,30 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
         submitAnswer();
       }}
     >
-      <div className="grid grid-cols-5 gap-2">
-        {round.letters.map((letter, index) => {
-          const used = usedIndexes.includes(index);
+      <div className="grid grid-cols-5 gap-1.5">
+  {round.letters.map((letter, index) => {
+    const used = usedIndexes.includes(index);
 
-          return (
-            <button
-              aria-label={`Ajouter ${letter}`}
-              className={[
-                "flex h-[3.15rem] items-center justify-center rounded-xl border text-xl font-black transition active:scale-[0.97]",
-                "focus:outline-none focus:ring-2 focus:ring-gold/70",
-                used
-                  ? "border-gold/15 bg-night/80 text-ivory/18 line-through opacity-35 shadow-inner"
-                  : "border-ivory/12 bg-premium-panel text-ivory shadow-premium",
-                resolved ? "cursor-not-allowed" : "",
-              ].join(" ")}
-              disabled={resolved || used}
-              key={`${letter}-${index}`}
-              onClick={() => addLetter(letter, index)}
-              type="button"
-            >
-              {letter}
-            </button>
-          );
-        })}
-      </div>
+    return (
+      <button
+        aria-label={`Ajouter ${letter}`}
+        className={[
+          "flex h-11 items-center justify-center rounded-lg border text-lg font-black transition active:scale-[0.97]",
+          "focus:outline-none focus:ring-2 focus:ring-gold/70",
+          used
+            ? "border-gold/10 bg-night/80 text-ivory/15 line-through opacity-30"
+            : "border-ivory/10 bg-premium-panel text-ivory shadow-premium",
+        ].join(" ")}
+        disabled={resolved || used}
+        key={`${letter}-${index}`}
+        onClick={() => addLetter(letter, index)}
+        type="button"
+      >
+        {letter}
+      </button>
+    );
+  })}
+</div>
 
       <div className="rounded-2xl border border-line bg-panel/80 p-3">
         <div className="mb-1 text-[0.65rem] font-black uppercase tracking-[0.16em] text-ivory/45">
