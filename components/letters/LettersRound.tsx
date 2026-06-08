@@ -49,13 +49,13 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
 
   return (
     <form
-      className="space-y-3.5"
+      className="space-y-3"
       onSubmit={(event) => {
         event.preventDefault();
         submitAnswer();
       }}
     >
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-2">
         {round.letters.map((letter, index) => {
           const used = usedIndexes.includes(index);
 
@@ -63,12 +63,12 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
             <button
               aria-label={`Ajouter ${letter}`}
               className={[
-                "flex h-14 items-center justify-center rounded-xl border text-2xl font-black transition active:scale-[0.97]",
-                "focus:outline-none focus:ring-2 focus:ring-gold/60",
+                "flex h-[3.15rem] items-center justify-center rounded-xl border text-xl font-black transition active:scale-[0.97]",
+                "focus:outline-none focus:ring-2 focus:ring-gold/70",
                 used
-                  ? "border-line bg-ivory/[0.035] text-ivory/22"
-                  : "border-line bg-ivory/[0.08] text-ivory shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
-                "sm:h-16 sm:text-3xl",
+                  ? "border-gold/15 bg-night/80 text-ivory/18 line-through opacity-35 shadow-inner"
+                  : "border-ivory/12 bg-premium-panel text-ivory shadow-premium",
+                resolved ? "cursor-not-allowed" : "",
               ].join(" ")}
               disabled={resolved || used}
               key={`${letter}-${index}`}
@@ -81,14 +81,14 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
         })}
       </div>
 
-      <div>
-        <div className="mb-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-ivory/48">
+      <div className="rounded-2xl border border-line bg-panel/80 p-3">
+        <div className="mb-1 text-[0.65rem] font-black uppercase tracking-[0.16em] text-ivory/45">
           Mot proposé
         </div>
 
-        <div className="flex min-h-12 w-full items-center rounded-xl border border-line bg-ivory/[0.075] px-3 text-2xl font-black uppercase tracking-wide text-ivory sm:min-h-14">
+        <div className="flex min-h-11 w-full items-center rounded-xl border border-ivory/10 bg-night/55 px-3 text-xl font-black uppercase tracking-[0.08em] text-ivory">
           {answer || (
-            <span className="text-sm font-bold normal-case tracking-normal text-ivory/32">
+            <span className="text-sm font-bold normal-case tracking-normal text-ivory/30">
               Touchez les lettres
             </span>
           )}
@@ -97,7 +97,7 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
 
       <div className="grid grid-cols-2 gap-2">
         <button
-          className="h-11 rounded-xl border border-line bg-ivory/[0.055] px-3 text-xs font-black uppercase tracking-[0.1em] text-ivory transition active:scale-[0.98] disabled:opacity-35"
+          className="h-10 rounded-xl border border-line bg-ivory/[0.055] text-[0.7rem] font-black uppercase tracking-[0.12em] text-ivory transition active:scale-[0.98] disabled:opacity-30"
           disabled={resolved || answer.length === 0}
           onClick={removeLastLetter}
           type="button"
@@ -106,7 +106,7 @@ export function LettersRound({ round, onSubmit }: LettersRoundProps) {
         </button>
 
         <button
-          className="h-11 rounded-xl border border-line bg-ivory/[0.055] px-3 text-xs font-black uppercase tracking-[0.1em] text-ivory transition active:scale-[0.98] disabled:opacity-35"
+          className="h-10 rounded-xl border border-line bg-ivory/[0.055] text-[0.7rem] font-black uppercase tracking-[0.12em] text-ivory transition active:scale-[0.98] disabled:opacity-30"
           disabled={resolved || answer.length === 0}
           onClick={clearAnswer}
           type="button"
