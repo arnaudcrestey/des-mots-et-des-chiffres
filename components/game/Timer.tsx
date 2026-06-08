@@ -21,19 +21,12 @@ export function Timer({ activeKey, disabled, onExpire }: TimerProps) {
   }, [activeKey]);
 
   useEffect(() => {
-    if (disabled) {
-      return;
-    }
+    if (disabled) return;
 
     const interval = window.setInterval(() => {
       setRemaining((current) => {
         hasTickedRef.current = true;
-
-        if (current <= 1) {
-          return 0;
-        }
-
-        return current - 1;
+        return current <= 1 ? 0 : current - 1;
       });
     }, 1000);
 
@@ -52,12 +45,13 @@ export function Timer({ activeKey, disabled, onExpire }: TimerProps) {
   const percentage = (remaining / GAME_CONFIG.roundSeconds) * 100;
 
   return (
-    <div className="rounded-2xl border border-line bg-panel/90 p-4">
-      <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase text-ivory/62">
+    <div className="rounded-xl border border-line bg-panel/90 px-3 py-2.5 sm:rounded-2xl sm:px-4 sm:py-3">
+      <div className="mb-1.5 flex items-center justify-between text-[0.65rem] font-black uppercase tracking-[0.12em] text-ivory/55">
         <span>Temps</span>
-        <span className="text-ivory">{remaining}s</span>
+        <span className="text-xs text-ivory sm:text-sm">{remaining}s</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-ivory/10">
+
+      <div className="h-1.5 overflow-hidden rounded-full bg-ivory/10 sm:h-2">
         <div
           className="h-full rounded-full bg-gold transition-all duration-500"
           style={{ width: `${percentage}%` }}
